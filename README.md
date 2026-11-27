@@ -7,11 +7,26 @@ It parses the pattern to postfix (`re2post`), builds a Thompson NFA
 matching takes O(m·n) time with no exponential backtracking.
 
 ```sh
-make
-./nfagrep 'a(bb)+a' file.txt
-./nfagrep -in 'colou?r' *.txt
-cat log | ./nfagrep -c '^(GET|POST) '
+meson setup build
+meson compile -C build
+meson install -C build        # optional, installs to /usr/local/bin by default
+
+build/nfagrep 'a(bb)+a' file.txt
+build/nfagrep -in 'colou?r' *.txt
+cat log | build/nfagrep -c '^(GET|POST) '
 ```
+
+## Layout
+
+| File | What it does |
+|------|--------------|
+| `src/parse.c` | `re2post`: infix to postfix with explicit concatenation (`a(bb)+a` → `abb·+·a·`), with error positions |
+| `src/nfa.c` | `post2nfa`: Thompson's construction, one state per literal, a Split per `\|*+?`, plus Match |
+| `src/sim.c` | `addstate` / `step`: lock-step search over the state set, restarted at every position for unanchored matching |
+| `src/utf8.c` | UTF-8 decoding |
+| `src/util.c` | allocation helpers |
+| `src/main.c` | the command line: options, reading files, printing |
+| `docs/` | the Milestone II reports (PDF) and slides (PPTX) |
 
 ## Syntax
 
